@@ -563,15 +563,40 @@ def build():
     return img
 
 
+def output_candidates():
+    """Where the finished page may go, most preferred first.
+
+    The grader names its output folder in MAKEFUN_OUTPUT_DIR; that is the
+    contract, so it comes first. /output is the same folder on most setups.
+    The folder beside this program serves local runs, and /tmp is the last
+    resort: a read-only repository mount must never turn a finished page
+    into a failed run.
+    """
+    seen = []
+    for d in (os.environ.get("MAKEFUN_OUTPUT_DIR"), "/output",
+              os.path.dirname(os.path.abspath(__file__)), "/tmp"):
+        if d and d not in seen:
+            seen.append(d)
+            yield os.path.join(d, "entry.png")
+
+
 def main():
     img = build()
-    out = sys.argv[1] if len(sys.argv) > 1 else None
-    if out is None:
-        out = "/output/entry.png" if os.path.isdir("/output") else os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), "entry.png")
-    os.makedirs(os.path.dirname(out) or ".", exist_ok=True)
-    img.save(out, format="PNG")
-    print("wrote", out, os.path.getsize(out), "bytes")
+    if len(sys.argv) > 1:
+        candidates = [sys.argv[1]]
+    else:
+        candidates = list(output_candidates())
+    errors = []
+    for out in candidates:
+        try:
+            os.makedirs(os.path.dirname(out) or ".", exist_ok=True)
+            img.save(out, format="PNG")
+        except OSError as err:
+            errors.append(f"{out}: {err}")
+            continue
+        print("wrote", out, os.path.getsize(out), "bytes")
+        return
+    raise SystemExit("could not write entry.png anywhere: " + "; ".join(errors))
 
 
 if __name__ == "__main__":
