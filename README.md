@@ -35,7 +35,7 @@
 python3 main.py
 ```
 
-Writes the image (1024×1024 PNG, under 1 MiB, byte-identical on every run) to `/output/entry.png` when that directory exists, otherwise next to the script. Needs Python 3 with Pillow; the fonts it uses are bundled under `fonts/`.
+Writes the image (1024×1024 PNG, byte-identical on every run) to the folder named by `MAKEFUN_OUTPUT_DIR`, falling back to `/output`, then next to the script. Needs nothing but Python 3 — the program is **pure standard library** (no Pillow): the DejaVu glyphs were rasterised ahead of time into the bundled `glyphs.bin` atlas, and at runtime the program only blits those bitmaps and encodes the PNG with `zlib`.
 
 ---
 
